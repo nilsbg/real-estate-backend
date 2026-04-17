@@ -9,27 +9,39 @@ export async function scrapeListings() {
     const $ = cheerio.load(data);
 
     const listings = [];
+    const seen = new Set();
 
-    $('a').each((i, el) => {
-      const link = $(el).attr('href');
+    $("a").each((i, el) => {
+      let link = $(el).attr("href");
+      let title = $(el).text().trim();
 
-      if (link && link.includes('/oferta/')) {
-        const title = $(el).text().trim();
+      if (!link) return;
 
-        if (title.length > 10) {
-          listings.push({
-            title,
-            link: link.startsWith('http')
-              ? link
-              : 'https://icentervarna.bg' + link,
-            price: "—",
-            image: ""
-          });
-        }
+      // normalize link
+      if (!link.startsWith("http")) {
+        link = "https://icentervarna.bg" + link;
+      }
+
+      // filter only real property pages (avoid main page duplicates)
+      if (
+        link.includes("/oferta/") &&
+        link !== URL &&
+        title.length > 10 &&
+        !seen.has(link)
+      ) {
+        seen.add(link);
+
+        listings.push({
+          title,
+          link,
+          price: "—",
+          image: "",
+          isNew: true
+        });
       }
     });
 
-    return listings.slice(0, 20);
+    return listings.slice(0, 30);
   } catch (err) {
     console.error(err);
     return [];
