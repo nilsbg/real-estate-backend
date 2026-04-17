@@ -3,8 +3,9 @@ import cors from "cors";
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
-// 🧠 ТУК СА ТВОИТЕ ИМОТИ (pseudo-feed)
+// 🧠 база в паметта
 let listings = [
   {
     id: 1,
@@ -13,22 +14,35 @@ let listings = [
     price: "400€",
     image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa",
     isNew: true
-  },
-  {
-    id: 2,
-    title: "3-стаен – Св. Св. Константин и Елена",
-    link: "https://icentervarna.bg/oferta/otdava-pod-naem/",
-    price: "2200€",
-    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa",
-    isNew: true
   }
 ];
 
-// 📡 API
+// 📡 GET API (за Lovable)
 app.get("/api/listings", (req, res) => {
   res.json({
     listings,
     lastUpdated: new Date().toISOString()
+  });
+});
+
+// ➕ ADMIN: добавяне на имот
+app.post("/api/admin/add", (req, res) => {
+  const { title, link, price, image } = req.body;
+
+  const newItem = {
+    id: Date.now(),
+    title,
+    link,
+    price,
+    image: image || "https://images.unsplash.com/photo-1560518883-ce09059eeffa",
+    isNew: true
+  };
+
+  listings.unshift(newItem);
+
+  res.json({
+    success: true,
+    item: newItem
   });
 });
 
