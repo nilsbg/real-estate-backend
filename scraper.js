@@ -10,21 +10,26 @@ export async function scrapeListings() {
 
     const listings = [];
 
-    $(".property-item").each((i, el) => {
-      const title = $(el).find(".property-title").text().trim();
-      const price = $(el).find(".property-price").text().trim();
-      const link = $(el).find("a").attr("href");
-      const image = $(el).find("img").attr("src");
+    $('a').each((i, el) => {
+      const link = $(el).attr('href');
 
-      listings.push({
-        title,
-        price,
-        link,
-        image
-      });
+      if (link && link.includes('/oferta/')) {
+        const title = $(el).text().trim();
+
+        if (title.length > 10) {
+          listings.push({
+            title,
+            link: link.startsWith('http')
+              ? link
+              : 'https://icentervarna.bg' + link,
+            price: "—",
+            image: ""
+          });
+        }
+      }
     });
 
-    return listings;
+    return listings.slice(0, 20);
   } catch (err) {
     console.error(err);
     return [];
