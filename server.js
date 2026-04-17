@@ -1,31 +1,38 @@
 import express from "express";
 import cors from "cors";
-import cron from "node-cron";
-import { scrapeListings } from "./scraper.js";
 
 const app = express();
 app.use(cors());
 
-let cache = [];
-let lastUpdated = null;
+// 🧠 ТУК СА ТВОИТЕ ИМОТИ (pseudo-feed)
+let listings = [
+  {
+    id: 1,
+    title: "2-стаен – Варна, Трошево",
+    link: "https://icentervarna.bg/oferta/otdava-pod-naem/",
+    price: "400€",
+    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa",
+    isNew: true
+  },
+  {
+    id: 2,
+    title: "3-стаен – Св. Св. Константин и Елена",
+    link: "https://icentervarna.bg/oferta/otdava-pod-naem/",
+    price: "2200€",
+    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa",
+    isNew: true
+  }
+];
 
-async function updateData() {
-  const listings = await scrapeListings();
-  cache = listings;
-  lastUpdated = new Date().toISOString();
-}
-
-// първо зареждане
-updateData();
-
-// авто обновяване на 10 мин
-cron.schedule("*/10 * * * *", updateData);
-
+// 📡 API
 app.get("/api/listings", (req, res) => {
   res.json({
-    listings: cache,
-    lastUpdated
+    listings,
+    lastUpdated: new Date().toISOString()
   });
 });
 
-app.listen(process.env.PORT || 8080);
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
