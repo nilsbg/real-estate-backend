@@ -1,49 +1,43 @@
-import axios from "axios";
-import * as cheerio from "cheerio";
+import { chromium } from "playwright";
 
 const URL = "https://icentervarna.bg/oferta/otdava-pod-naem/";
 
 export async function scrapeListings() {
-  try {
-    const { data } = await axios.get(URL);
-    const $ = cheerio.load(data);
+  const browser = await chromium.launch({
+    headless: true
+  });
 
-    const listings = [];
-    const seen = new Set();
+  const page = await browser.newPage();
 
-    $("a").each((i, el) => {
-      let link = $(el).attr("href");
-      let title = $(el).text().trim();
+  await page.goto(URL, { waitUntil: "networkidle" });
 
-      if (!link) return;
+  const listings = await page.evaluate(() => {
+    const items = [];
 
-      // normalize link
-      if (!link.startsWith("http")) {
-        link = "https://icentervarna.bg" + link;
-      }
+    document.querySelectorAll("a").forEach(el => {
+      const title = el.innerText.trim();
+      let link = el.href;
 
-      // filter only real property pages (avoid main page duplicates)
       if (
+        link &&
         link.includes("/oferta/") &&
-        link !== URL &&
+        title &&
         title.length > 10 &&
-        !seen.has(link)
+        title !== "Отдава под наем"
       ) {
-        seen.add(link);
-
-        listings.push({
+        items.push({
           title,
           link,
           price: "—",
-          image: "",
-          isNew: true
+          image: ""
         });
       }
     });
 
-    return listings.slice(0, 30);
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+    return items;
+  });
+
+  await browser.close();
+
+  return listings.slice(0, 30);
 }
