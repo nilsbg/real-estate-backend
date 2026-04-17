@@ -1,43 +1,54 @@
-import { chromium } from "playwright";
+import axios from "axios";
+import * as cheerio from "cheerio";
 
 const URL = "https://icentervarna.bg/oferta/otdava-pod-naem/";
 
 export async function scrapeListings() {
-  const browser = await chromium.launch({
-    headless: true
-  });
+  try {
+    const { data } = await axios.get(URL, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+      }
+    });
 
-  const page = await browser.newPage();
+    const $ = cheerio.load(data);
 
-  await page.goto(URL, { waitUntil: "networkidle" });
+    const listings = [];
+    const seen = new Set();
 
-  const listings = await page.evaluate(() => {
-    const items = [];
+    // търсим всички линкове към обяви
+    $("a").each((i, el) => {
+      const link = $(el).attr("href");
+      const title = $(el).text().replace(/\s+/g, " ").trim();
 
-    document.querySelectorAll("a").forEach(el => {
-      const title = el.innerText.trim();
-      let link = el.href;
+      if (!link) return;
+
+      const fullLink = link.startsWith("http")
+        ? link
+        : "https://icentervarna.bg" + link;
 
       if (
-        link &&
-        link.includes("/oferta/") &&
-        title &&
-        title.length > 10 &&
-        title !== "Отдава под наем"
+        fullLink.includes("/oferta/") &&
+        fullLink !== URL &&
+        title.length > 15 &&
+        !seen.has(fullLink)
       ) {
-        items.push({
+        seen.add(fullLink);
+
+        listings.push({
           title,
-          link,
+          link: fullLink,
           price: "—",
-          image: ""
+          image: "",
+          isNew: true
         });
       }
     });
 
-    return items;
-  });
-
-  await browser.close();
-
-  return listings.slice(0, 30);
+    return listings.slice(0, 30);
+  } catch (err) {
+    console.error("Scraper error:", err);
+    return [];
+  }
 }
