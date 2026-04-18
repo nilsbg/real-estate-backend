@@ -1,8 +1,16 @@
+import express from "express";
+import cors from "cors";
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// 🧠 ОБЯВИ (тестови данни)
 let listings = [
   {
     id: 1,
     title: "2-стаен – Варна, Трошево",
-    link: "https://icentervarna.bg/imot/test1",
+    link: "https://icentervarna.bg/oferta/otdava-pod-naem/",
     price: "400€",
     image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa",
     isNew: true
@@ -10,7 +18,7 @@ let listings = [
   {
     id: 2,
     title: "3-стаен – Левски",
-    link: "https://icentervarna.bg/imot/test2",
+    link: "https://icentervarna.bg/oferta/otdava-pod-naem/",
     price: "550€",
     image: "",
     isNew: true
@@ -18,9 +26,44 @@ let listings = [
   {
     id: 3,
     title: "Гараж – Колхозен пазар",
-    link: "https://icentervarna.bg/imot/test3",
+    link: "https://icentervarna.bg/oferta/otdava-pod-naem/",
     price: "120€",
     image: "",
     isNew: true
   }
 ];
+
+// 📡 GET всички обяви
+app.get("/api/listings", (req, res) => {
+  res.json({
+    listings,
+    lastUpdated: new Date().toISOString()
+  });
+});
+
+// ➕ ADD обява (admin)
+app.post("/api/admin/add", (req, res) => {
+  const { title, link, price, image } = req.body;
+
+  const newItem = {
+    id: Date.now(),
+    title,
+    link,
+    price,
+    image: image || "",
+    isNew: true
+  };
+
+  listings.unshift(newItem);
+
+  res.json({
+    success: true,
+    item: newItem
+  });
+});
+
+// 🚀 старт на сървъра
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
