@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🧠 ТВОИТЕ ОБЯВИ (тук се добавят от admin панела)
+// 🧠 ОБЯВИ (добавят се от admin панела)
 let listings = [
   {
     id: 1,
@@ -23,29 +23,29 @@ function removeDuplicates(arr) {
 
   return arr.filter(item => {
     if (!item.link) return false;
-
-    if (seen.has(item.link)) {
-      return false;
-    }
+    if (seen.has(item.link)) return false;
 
     seen.add(item.link);
     return true;
   });
 }
 
-// 📡 API (за Lovable)
+// 📡 API (за сайта)
 app.get("/api/listings", (req, res) => {
 
   // махаме дубликати
   const unique = removeDuplicates(listings);
 
-  // махаме обяви без реална снимка (unsplash)
-  const filtered = unique.filter(item => {
-    return item.image && !item.image.includes("unsplash");
+  // сортираме: реални снимки най-горе
+  const sorted = unique.sort((a, b) => {
+    const aReal = a.image && !a.image.includes("unsplash");
+    const bReal = b.image && !b.image.includes("unsplash");
+
+    return bReal - aReal;
   });
 
   res.json({
-    listings: filtered,
+    listings: sorted,
     lastUpdated: new Date().toISOString()
   });
 });
