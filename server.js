@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🧠 база в паметта
+// 🧠 ТВОИТЕ ОБЯВИ (тук се добавят от admin панела)
 let listings = [
   {
     id: 1,
@@ -17,10 +17,35 @@ let listings = [
   }
 ];
 
-// 📡 GET API (за Lovable)
+// 🔁 Премахване на дубликати
+function removeDuplicates(arr) {
+  const seen = new Set();
+
+  return arr.filter(item => {
+    if (!item.link) return false;
+
+    if (seen.has(item.link)) {
+      return false;
+    }
+
+    seen.add(item.link);
+    return true;
+  });
+}
+
+// 📡 API (за Lovable)
 app.get("/api/listings", (req, res) => {
+
+  // махаме дубликати
+  const unique = removeDuplicates(listings);
+
+  // махаме обяви без реална снимка (unsplash)
+  const filtered = unique.filter(item => {
+    return item.image && !item.image.includes("unsplash");
+  });
+
   res.json({
-    listings,
+    listings: filtered,
     lastUpdated: new Date().toISOString()
   });
 });
@@ -46,6 +71,7 @@ app.post("/api/admin/add", (req, res) => {
   });
 });
 
+// 🚀 старт
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
