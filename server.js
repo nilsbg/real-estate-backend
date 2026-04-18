@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🧠 ОБЯВИ (тестови данни)
+// 🧠 ОБЯВИ (in-memory база)
 let listings = [
   {
     id: 1,
@@ -33,7 +33,7 @@ let listings = [
   }
 ];
 
-// 📡 GET всички обяви
+// 📡 PUBLIC API (за сайта)
 app.get("/api/listings", (req, res) => {
   res.json({
     listings,
@@ -41,7 +41,7 @@ app.get("/api/listings", (req, res) => {
   });
 });
 
-// ➕ ADD обява (admin)
+// ➕ ADD (admin)
 app.post("/api/admin/add", (req, res) => {
   const { title, link, price, image } = req.body;
 
@@ -62,8 +62,44 @@ app.post("/api/admin/add", (req, res) => {
   });
 });
 
-// 🚀 старт на сървъра
+// 📋 GET ADMIN LIST
+app.get("/api/admin/listings", (req, res) => {
+  res.json(listings);
+});
+
+// 🗑 DELETE
+app.delete("/api/admin/listings/:id", (req, res) => {
+  const id = Number(req.params.id);
+  listings = listings.filter(item => item.id !== id);
+
+  res.json({ success: true });
+});
+
+// ✏️ EDIT
+app.put("/api/admin/listings/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const { title, link, price, image } = req.body;
+
+  const item = listings.find(l => l.id === id);
+
+  if (!item) {
+    return res.status(404).json({ error: "Not found" });
+  }
+
+  item.title = title ?? item.title;
+  item.link = link ?? item.link;
+  item.price = price ?? item.price;
+  item.image = image ?? item.image;
+
+  res.json({
+    success: true,
+    item
+  });
+});
+
+// 🚀 SERVER START
 const PORT = process.env.PORT || 8080;
+
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
