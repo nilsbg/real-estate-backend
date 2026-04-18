@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🧠 ОБЯВИ (добавят се от admin панела)
+// 🧠 ОБЯВИ
 let listings = [
   {
     id: 1,
@@ -17,7 +17,7 @@ let listings = [
   }
 ];
 
-// 🔁 Премахване на дубликати
+// 🔁 махаме дубликати (по желание – оставяме го)
 function removeDuplicates(arr) {
   const seen = new Set();
 
@@ -30,27 +30,18 @@ function removeDuplicates(arr) {
   });
 }
 
-// 📡 API (за сайта)
+// 📡 API (БЕЗ филтри за снимки)
 app.get("/api/listings", (req, res) => {
 
-  // махаме дубликати
   const unique = removeDuplicates(listings);
 
-  // сортираме: реални снимки най-горе
-  const sorted = unique.sort((a, b) => {
-    const aReal = a.image && !a.image.includes("unsplash");
-    const bReal = b.image && !b.image.includes("unsplash");
-
-    return bReal - aReal;
-  });
-
   res.json({
-    listings: sorted,
+    listings: unique,
     lastUpdated: new Date().toISOString()
   });
 });
 
-// ➕ ADMIN: добавяне на имот
+// ➕ ADMIN: добавяне
 app.post("/api/admin/add", (req, res) => {
   const { title, link, price, image } = req.body;
 
@@ -59,7 +50,7 @@ app.post("/api/admin/add", (req, res) => {
     title,
     link,
     price,
-    image: image || "https://images.unsplash.com/photo-1560518883-ce09059eeffa",
+    image: image || "",
     isNew: true
   };
 
