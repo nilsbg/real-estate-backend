@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🧠 ОБЯВИ
+// 🧠 ОБЯВИ (временно хранилище)
 let listings = [
   {
     id: 1,
@@ -14,10 +14,26 @@ let listings = [
     price: "400€",
     image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa",
     isNew: true
+  },
+  {
+    id: 2,
+    title: "Луксозен тристаен – Св. Св. Константин и Елена",
+    link: "https://icentervarna.bg/oferta/otdava-pod-naem/",
+    price: "2200€",
+    image: "",
+    isNew: true
+  },
+  {
+    id: 3,
+    title: "2-стаен – Възраждане 2",
+    link: "https://icentervarna.bg/oferta/otdava-pod-naem/",
+    price: "600€",
+    image: "",
+    isNew: true
   }
 ];
 
-// 🔁 махаме дубликати (по желание – оставяме го)
+// 🔁 махане на дубликати
 function removeDuplicates(arr) {
   const seen = new Set();
 
@@ -30,9 +46,8 @@ function removeDuplicates(arr) {
   });
 }
 
-// 📡 API (БЕЗ филтри за снимки)
+// 📡 API (важното)
 app.get("/api/listings", (req, res) => {
-
   const unique = removeDuplicates(listings);
 
   res.json({
@@ -41,7 +56,7 @@ app.get("/api/listings", (req, res) => {
   });
 });
 
-// ➕ ADMIN: добавяне
+// ➕ ADD (admin)
 app.post("/api/admin/add", (req, res) => {
   const { title, link, price, image } = req.body;
 
